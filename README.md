@@ -56,5 +56,4 @@ help you find your bearings. It comes with several example programs that you
 can obtain using `go get` and play with as you learn to build tools that analyze
 or manipulate Go programs.
 
-### [template](template/) ([godoc](//godoc.org/github.com/golang/example/template))
 
