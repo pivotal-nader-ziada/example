@@ -1,0 +1,77 @@
+resources:
+  - name: go
+    type: docker-image
+    source:
+      repository: golang
+
+  - name: repo
+    type: git
+    source:
+      uri: https://github.com/pivotal-nader-ziada/example.git
+      branch: master
+
+jobs:
+  - name: unit-test
+    plan:
+      - get: repo
+        trigger: true
+      - get: go
+        trigger: true
+      - task: test
+        image: go
+        config:
+          platform: linux
+          inputs:
+            - name: repo
+          outputs:
+            - name: hello
+          run:
+            path: bash
+            args:
+              - "-exc"
+              - |
+                cd repo
+                go get github.com/golang/example/stringutil
+                go build -o test hello/hello.go
+                ./test
+
+
+  - name: integration-test
+    plan:
+      - get: repo
+        passed: [unit-test]
+        trigger: true
+      - get: go
+        passed: [unit-test]
+        trigger: true
+      - task: test
+        image: go
+        config:
+          platform: linux
+          inputs:
+            - name: repo
+          outputs:
+            - name: hello
+          run:
+            path: bash
+            args:
+              - "-exc"
+              - |
+                cd repo
+                go get github.com/golang/example/stringutil
+                go build -o test hello/hello.go
+                ./test
+  - name: ship-it
+    plan:
+    - get: repo
+      passed: [integration-test]
+      trigger: true
+    - task: ship
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source: {repository: busybox}
+        run:
+          path: echo
+          args: [hello world]
